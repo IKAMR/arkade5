@@ -112,6 +112,53 @@ public class InformationPackageCreatorTest(TestSessionLifeTimeFilesFixture testS
         metadataFileList.Should().BeEquivalentTo(packageFilesExpectedInMetadata);
     }
 
+    [Fact]
+    [Trait("Category", "Integration")]
+    public void CreateSipWithContentFilesNamedLikeTheDocumentsDirectoryTest()
+    {
+        DirectoryInfo extractionDirectory = CopyOfNoark5Extraction();
+        DirectoryInfo systemDocumentationDirectory = extractionDirectory.CreateSubdirectory("sysdoc");
+
+        File.WriteAllText(Path.Combine(systemDocumentationDirectory.FullName, "LISTE_DOKUMENT_UTEN_AVSENDER.xlsx"), "test");
+        File.WriteAllText(Path.Combine(systemDocumentationDirectory.FullName, "liste_dokumenter.xlsx"), "test");
+
+        // Only the documents directory placed directly below content holds document files:
+        DirectoryInfo nestedDirectory = systemDocumentationDirectory.CreateSubdirectory("dokumenter");
+        File.WriteAllText(Path.Combine(nestedDirectory.FullName, "5000002.pdf"), "test");
+
+        var content = new DirectoryArchiveContent(extractionDirectory);
+
+        (Uuid outputPackageId, List<string> metadataFileList, List<string> packageFileList) =
+            CreatePackage<Noark5Archive>(content, PackageType.SubmissionInformationPackage);
+
+        string rootDir = outputPackageId + "/";
+
+        packageFileList.Should().Contain(rootDir + "content/sysdoc/LISTE_DOKUMENT_UTEN_AVSENDER.xlsx");
+        packageFileList.Should().Contain(rootDir + "content/sysdoc/liste_dokumenter.xlsx");
+
+        packageFileList.Should().Contain(rootDir + "content/sysdoc/dokumenter/5000002.pdf");
+
+        metadataFileList.Should().Contain(rootDir + "content/sysdoc/LISTE_DOKUMENT_UTEN_AVSENDER.xlsx");
+        metadataFileList.Should().Contain(rootDir + "content/sysdoc/liste_dokumenter.xlsx");
+        metadataFileList.Should().Contain(rootDir + "content/sysdoc/dokumenter/5000002.pdf");
+
+        // All files in the package (except the metadata file itself) should be described in its metadata:
+        List<string> packageFilesExpectedInMetadata = DiasTarArchiveUtility.GetPackageItemsExpectedInMetadata(packageFileList);
+        metadataFileList.Should().BeEquivalentTo(packageFilesExpectedInMetadata);
+    }
+
+    private DirectoryInfo CopyOfNoark5Extraction([CallerMemberName] string callerMemberName = null)
+    {
+        DirectoryInfo extractionDirectory = TestData.Directory("Archives", "Noark5", "extraction");
+
+        DirectoryInfo copyLocation = testSessionLifeTimeFilesFixture
+            .CreateIsolatedDirectory<InformationPackageCreatorTest>($"{callerMemberName}.input");
+
+        extractionDirectory.CopyTo(copyLocation.FullName, overwrite: false);
+
+        return new DirectoryInfo(Path.Combine(copyLocation.FullName, extractionDirectory.Name));
+    }
+
     private (Uuid, List<string>, List<string>) CreatePackage<TArchive>(IArchiveContent content, PackageType packageType,
         [CallerMemberName] string callerMemberName = null) where TArchive : Archive
    {

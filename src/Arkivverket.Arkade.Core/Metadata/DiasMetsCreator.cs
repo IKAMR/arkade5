@@ -33,13 +33,16 @@ namespace Arkivverket.Arkade.Core.Metadata
             {
                 IEnumerable<(FileInfo File, string RelativePath)> archiveContentFiles = archive.Content.GetFiles();
 
-                string[] directoriesToSkip = archive is Noark5Archive ? ArkadeConstants.DocumentDirectoryNames : null;
+                // Noark 5 document files are described from the documents directory further below. Only that
+                // directory is left out here, not every path which happens to contain its name.
+                string documentsDirectoryName = (archive as Noark5Archive)?.GetDocumentsDirectory()?.Name;
 
                 var fileDescriptions = new List<FileDescription>();
 
                 foreach ((FileInfo archiveContentFile, string contentRelativeFilePath) in archiveContentFiles)
                 {
-                    if (directoriesToSkip?.Any(skipDir => contentRelativeFilePath.Contains(skipDir)) == true)
+                    if (documentsDirectoryName != null &&
+                        contentRelativeFilePath.StartsWith(documentsDirectoryName + '/', StringComparison.Ordinal))
                         continue;
 
                     fileDescriptions.Add(GetFileDescription(archiveContentFile, $"{ArkadeConstants.DirectoryNameContent}/{contentRelativeFilePath}"));

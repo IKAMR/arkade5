@@ -87,7 +87,7 @@ public class Noark5Archive : AddmlBasedArchive
 
         if (SourceIsTarFile)
         {
-            var tarInputStream = new TarInputStream(File.OpenRead(InputDiasPackage.TarFile.FullName!), Encoding.UTF8);
+            using var tarInputStream = new TarInputStream(File.OpenRead(InputDiasPackage.TarFile.FullName!), Encoding.UTF8);
 
             while (tarInputStream.GetNextEntry() is { Name: not null } entry)
             {

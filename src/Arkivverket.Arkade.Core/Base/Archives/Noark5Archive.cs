@@ -93,7 +93,9 @@ public class Noark5Archive : AddmlBasedArchive
             {
                 if (!entry.IsDirectory && entry.IsNoark5DocumentsEntry(InputDiasPackage.TarRootDirectoryName))
                 {
-                    DocumentsDirectoryName = PathUtil.GetChild(DirectoryNameContent, entry.Name);
+                    DocumentsDirectoryName = entry
+                        .GetRelativePathForNoark5DocumentEntry(InputDiasPackage.TarRootDirectoryName)
+                        .Split('/')[0];
                     break;
                 }
             }

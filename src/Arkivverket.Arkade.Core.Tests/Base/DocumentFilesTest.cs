@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Formats.Tar;
 using System.IO;
 using System.Text;
 using Arkivverket.Arkade.Core.Base;
@@ -54,28 +53,7 @@ public class DocumentFilesTest(TestSessionLifeTimeFilesFixture testSessionLifeTi
     }
 
     private static string CreateTarFile(DirectoryInfo directory, IEnumerable<string> entryNames)
-    {
-        string tarFilePath = Path.Combine(directory.FullName, "source.tar");
-
-        using Stream tarFileStream = File.Create(tarFilePath);
-        using var tarWriter = new TarWriter(tarFileStream);
-
-        foreach (string entryName in entryNames)
-        {
-            bool isDirectory = entryName.EndsWith('/');
-
-            var entry = new PaxTarEntry(
-                isDirectory ? TarEntryType.Directory : TarEntryType.RegularFile, entryName
-            );
-
-            if (!isDirectory)
-                entry.DataStream = new MemoryStream("test"u8.ToArray());
-
-            tarWriter.WriteEntry(entry);
-        }
-
-        return tarFilePath;
-    }
+        => DiasTarArchiveUtility.CreateTarArchive(directory, "source.tar", entryNames);
 
     private static List<string> TransferToPackage(DocumentFiles documentFiles, DirectoryInfo directory,
         string packageRootDirectory)

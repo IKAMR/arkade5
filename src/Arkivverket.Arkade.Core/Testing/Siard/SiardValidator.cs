@@ -149,6 +149,9 @@ namespace Arkivverket.Arkade.Core.Testing.Siard
                 throw new ArkadeException(ResolveMessageForException(e));
             }
 
+            if (errors.Any(IndicatesUnsupportedJavaRuntime))
+                throw new ArkadeException(ExceptionMessages.SiardValidatorJavaRuntimeTooOld);
+
             if (errors.Any())
                 HandleValidationErrors(errors, results);
 
@@ -160,6 +163,13 @@ namespace Arkivverket.Arkade.Core.Testing.Siard
             return e is Win32Exception
                 ? ExceptionMessages.SiardValidatorOpenError
                 : ExceptionMessages.SiardValidatorError;
+        }
+
+        // A Java runtime older than the validator library it is given reports this and validates nothing,
+        // so its message is not a validation result
+        internal static bool IndicatesUnsupportedJavaRuntime(string error)
+        {
+            return error != null && error.Contains("UnsupportedClassVersionError", StringComparison.Ordinal);
         }
 
         private static void HandleValidationErrors(IEnumerable<string> errors, ICollection<string> results)

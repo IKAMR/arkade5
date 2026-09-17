@@ -150,6 +150,9 @@
   <data name="SiardValidatorOpenError" xml:space="preserve">
     <value>Klarte ikke starte validatoren. Vennligst forsikre deg om at Java Runtime er installert og tilgjengelig ved å skrive "java -version" i konsollen.</value>
   </data>
+  <data name="SiardValidatorJavaRuntimeTooOld" xml:space="preserve">
+    <value>Installert Java Runtime er for gammel for validatorbiblioteket. Vennligst installer en nyere Java Runtime - DBPTK 4 krever Java 21 eller nyere. Skriv "java -version" i konsollen for å se installert versjon.</value>
+  </data>
   <data name="SiardValidatorLibraryNotFound" xml:space="preserve">
     <value>Klarte ikke finne validatorbiblioteket. Vennligst last ned fra {0}, og lagre filen i {1}.</value>
   </data>

@@ -189,6 +189,15 @@ namespace Arkivverket.Arkade.Core.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The installed Java Runtime is too old for the validator library. Please install a newer Java Runtime - DBPTK 4 requires Java 21 or newer. Enter &quot;java -version&quot; in a console to see the installed version..
+        /// </summary>
+        public static string SiardValidatorJavaRuntimeTooOld {
+            get {
+                return ResourceManager.GetString("SiardValidatorJavaRuntimeTooOld", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown package type: {0}.
         /// </summary>
         public static string UnknownPackageType {

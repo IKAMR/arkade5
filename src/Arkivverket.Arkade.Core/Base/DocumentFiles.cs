@@ -163,7 +163,7 @@ namespace Arkivverket.Arkade.Core.Base
                     CheckSum = checkSum
                 };
 
-                string relativeEntryName = entry.GetRelativePathForNoark5DocumentEntry();
+                string relativeEntryName = entry.GetRelativePathForNoark5DocumentEntry(_tarRootDirectoryName);
 
                 _documentFiles.Add(relativeEntryName, documentFile);
             }
@@ -187,7 +187,7 @@ namespace Arkivverket.Arkade.Core.Base
 
                 string checkSum = tarInputStream.GenerateChecksumForEntry(checksumGenerator);
 
-                string documentFileRelativePath = entry.GetRelativePathForNoark5DocumentEntry();
+                string documentFileRelativePath = entry.GetRelativePathForNoark5DocumentEntry(_tarRootDirectoryName);
 
                 _documentFiles[documentFileRelativePath].CheckSum = checkSum;
             }

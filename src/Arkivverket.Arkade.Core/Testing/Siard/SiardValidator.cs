@@ -57,21 +57,45 @@ namespace Arkivverket.Arkade.Core.Testing.Siard
 
             Process process = SetupSiardValidatorProcess(processArguments);
 
-            SiardValidationReport siardValidationReport = RunProcess(process);
+            SiardValidationReport siardValidationReport;
 
-            siardValidationReport.TestingTool = GetDbptkDeveloperInformation(dbptkLibraryPath);
+            try
+            {
+                siardValidationReport = RunProcess(process);
 
-            ExternalProcessManager.Close(process);
+                siardValidationReport.TestingTool = GetDbptkDeveloperInformation(dbptkLibraryPath);
+            }
+            catch
+            {
+                CloseValidationOperationMessage(OperationMessageStatus.Error);
 
-            CleanUpDbptkLogFiles();
+                _testProgressReporter.Finish(hasFailed: true);
+                throw;
+            }
+            finally
+            {
+                ExternalProcessManager.Close(process);
+                CleanUpDbptkLogFiles();
+            }
 
             _statusEventHandler.RaiseEventSiardValidationFinished(siardValidationReport.Errors);
 
             bool validationRanWithoutRunErrors = siardValidationReport.Errors.All(e => e == null || e.StartsWith("WARN"));
 
+            CloseValidationOperationMessage(validationRanWithoutRunErrors
+                ? OperationMessageStatus.Ok
+                : OperationMessageStatus.Error);
+
             _testProgressReporter.Finish(hasFailed: !validationRanWithoutRunErrors);
 
             return siardValidationReport;
+        }
+
+        // The operation message is closed under the identifier it was opened with. A listener matching it
+        // by its own wording of the message only succeeds while both speak the same language.
+        private void CloseValidationOperationMessage(OperationMessageStatus status)
+        {
+            _statusEventHandler.RaiseEventOperationMessage(Messages.ValidatingExtractMessage, null, status);
         }
 
         private ArchiveTestingTool GetDbptkDeveloperInformation(string dbptkLibraryPath)

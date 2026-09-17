@@ -54,9 +54,8 @@ namespace Arkivverket.Arkade.Core.Base
 
                 string trimmedPackageRootDirectory = packageRootDirectory.Trim('/', '\\');
 
-                entry.Name = _tarRootDirectoryName == null
-                    ? $"{trimmedPackageRootDirectory}/{entry.Name}"
-                    : entry.Name.Replace(_tarRootDirectoryName, trimmedPackageRootDirectory);
+                entry.Name = $"{trimmedPackageRootDirectory}/{ArkadeConstants.DirectoryNameContent}/" +
+                             entry.GetRelativePathForNoark5DocumentEntry(_tarRootDirectoryName);
 
                 tarOutputStream.PutNextEntry(entry);
 

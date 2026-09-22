@@ -1,5 +1,6 @@
 using System.IO;
 using Arkivverket.Arkade.Core.Base;
+using Arkivverket.Arkade.Core.Tests.UnitTestUtilities;
 using FluentAssertions;
 using Xunit;
 
@@ -8,9 +9,11 @@ namespace Arkivverket.Arkade.Core.Tests.Base
     public class DocumentsDirectoryTest
     {
         private static DirectoryInfo _workingDirectory;
+        private readonly TestSessionLifeTimeFilesFixture _testSessionLifeTimeFilesFixture;
 
-        public DocumentsDirectoryTest()
+        public DocumentsDirectoryTest(TestSessionLifeTimeFilesFixture testSessionLifeTimeFilesFixture)
         {
+            _testSessionLifeTimeFilesFixture = testSessionLifeTimeFilesFixture;
             _workingDirectory = new DirectoryInfo(Path.Combine("TestData", "DocumentDirectoryTest"));
         }
 
@@ -83,6 +86,23 @@ namespace Arkivverket.Arkade.Core.Tests.Base
 
             archive.GetDocumentsDirectoryName().Should().Be("dokumenter"); // default name
             archive.GetDocumentsDirectory().Should().BeNull();
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public void DocumentsDirectoryIsFoundInTarRootedInADirectoryNamedLikeTheContentDirectory()
+        {
+            DirectoryInfo isolatedDirectory = _testSessionLifeTimeFilesFixture.CreateIsolatedDirectory();
+
+            // The tar's root directory name is taken from its file name:
+            string tarFileFullName = DiasTarArchiveUtility.CreateTarArchive(isolatedDirectory, "content.tar", [
+                "content/content/arkivstruktur.xml",
+                "content/content/dokumenter/5000000.pdf"
+            ]);
+
+            Noark5Archive archive = SetupArchive(tarFileFullName);
+
+            archive.GetDocumentsDirectoryName().Should().Be("dokumenter");
         }
 
         [Fact]

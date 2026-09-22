@@ -8,29 +8,39 @@ namespace Arkivverket.Arkade.Core.Util
     {
         public static bool IsNoark5DocumentsEntry(this TarEntry tarEntry, string archiveRootDirectoryName)
         {
-            string entryName = tarEntry.Name.Replace('\\', '/');
+            string entryName = tarEntry.Name.Replace('\\', '/').TrimEnd('/');
 
-            // archiveRootDirectoryName is the tar's actual internal root directory; null means the
-            // tar has no single root and its entry paths start at the package level
             return ArkadeConstants.DocumentDirectoryNames.Any(documentDirectoryName =>
-                entryName.StartsWith(archiveRootDirectoryName == null
-                    ? $"content/{documentDirectoryName}"
-                    : $"{archiveRootDirectoryName}/content/{documentDirectoryName}"));
+            {
+                string documentsDirectoryPath = ContentDirectoryPath(archiveRootDirectoryName) + documentDirectoryName;
+
+                return entryName.Equals(documentsDirectoryPath, StringComparison.Ordinal) ||
+                       entryName.StartsWith(documentsDirectoryPath + '/', StringComparison.Ordinal);
+            });
         }
 
-        public static string GetRelativePathForNoark5DocumentEntry(this TarEntry tarEntry)
+        /// <summary>
+        /// Gives the entry's path relative to the archive's content directory, which is how document
+        /// files are named in the archive description and in METS.
+        /// </summary>
+        public static string GetRelativePathForNoark5DocumentEntry(this TarEntry tarEntry, string archiveRootDirectoryName)
         {
             string entryName = tarEntry.Name.Replace('\\', '/');
 
-            foreach (string documentDirectoryName in ArkadeConstants.DocumentDirectoryNames)
-            {
-                int endIndex = entryName.IndexOf(documentDirectoryName, StringComparison.InvariantCultureIgnoreCase);
+            string contentDirectoryPath = ContentDirectoryPath(archiveRootDirectoryName);
 
-                if (endIndex > 0)
-                    return entryName.Remove(0, endIndex);
-            }
+            return entryName.StartsWith(contentDirectoryPath, StringComparison.Ordinal)
+                ? entryName[contentDirectoryPath.Length..]
+                : entryName;
+        }
 
-            return entryName;
+        // archiveRootDirectoryName is the tar's actual internal root directory; null means the
+        // tar has no single root and its entry paths start at the package level
+        private static string ContentDirectoryPath(string archiveRootDirectoryName)
+        {
+            return archiveRootDirectoryName == null
+                ? $"{ArkadeConstants.DirectoryNameContent}/"
+                : $"{archiveRootDirectoryName}/{ArkadeConstants.DirectoryNameContent}/";
         }
     }
 }

@@ -46,7 +46,6 @@ namespace Arkivverket.Arkade.GUI.ViewModels
         public DelegateCommand NewProgramSessionCommand { get; set; }
 
         private Archive _archive;
-        private ArchiveType _archiveType;
         private bool _testRunHasBeenExecuted;
         private bool _isLoading;
         private bool _isRunningTests;
@@ -373,15 +372,12 @@ namespace Arkivverket.Arkade.GUI.ViewModels
 
         private void OnSiardValidationFinished(object sender, SiardValidationEventArgs eventArgs)
         {
-            var noErrors = true;
-
             foreach (string errorOrWarningMsg in eventArgs.Errors.Where(e => e != null))
             {
                 if (!errorOrWarningMsg.StartsWith("WARN"))
                 {
                     _statusEventHandler.RaiseEventOperationMessage(errorOrWarningMsg, string.Empty,
                         OperationMessageStatus.Error);
-                    noErrors = false;
                 }
                 else if (!ArkadeConstants.SuppressedDbptkWarningMessages.Contains(errorOrWarningMsg))
                 {
@@ -389,10 +385,6 @@ namespace Arkivverket.Arkade.GUI.ViewModels
                         OperationMessageStatus.Warning);
                 }
             }
-
-            if (noErrors)
-                _statusEventHandler.RaiseEventOperationMessage(TestRunnerGUI.SiardProgressMessage,
-                    TestRunnerGUI.MessageCompleted, OperationMessageStatus.Ok);
         }
 
         private void OnOperationMessageEvent(object sender, OperationMessageEventArgs eventArgs)
@@ -415,10 +407,7 @@ namespace Arkivverket.Arkade.GUI.ViewModels
             if (eventArgs.HasFailed)
             {
                 _statusEventHandler.RaiseEventOperationMessage(
-                    _archiveType == ArchiveType.Siard
-                        ? TestRunnerGUI.SiardProgressMessage
-                        : TestRunnerGUI.EventIdFinishedWithError,
-                    eventArgs.FailMessage, OperationMessageStatus.Error);
+                    TestRunnerGUI.EventIdFinishedWithError, eventArgs.FailMessage, OperationMessageStatus.Error);
                 _testRunHasFailed = true;
             }
             

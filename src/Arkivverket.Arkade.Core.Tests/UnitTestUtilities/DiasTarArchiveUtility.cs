@@ -33,6 +33,32 @@ public static class DiasTarArchiveUtility
         return contentFileNames;
     }
 
+    /// <summary>
+    /// Creates a tar archive holding an entry per given entry name. Names ending with a forward
+    /// slash become directory entries, the rest become files with a minimum of content.
+    /// </summary>
+    public static string CreateTarArchive(DirectoryInfo directory, string fileName, IEnumerable<string> entryNames)
+    {
+        string tarArchiveFilePath = Path.Combine(directory.FullName, fileName);
+
+        using Stream tarArchiveStream = File.Create(tarArchiveFilePath);
+        using var tarWriter = new TarWriter(tarArchiveStream);
+
+        foreach (string entryName in entryNames)
+        {
+            bool isDirectory = entryName.EndsWith('/');
+
+            var entry = new PaxTarEntry(isDirectory ? TarEntryType.Directory : TarEntryType.RegularFile, entryName);
+
+            if (!isDirectory)
+                entry.DataStream = new MemoryStream("test"u8.ToArray());
+
+            tarWriter.WriteEntry(entry);
+        }
+
+        return tarArchiveFilePath;
+    }
+
     public static List<string> GetFileList(string tarArchiveFilePath)
     {
         var tarArchiveFileList = new List<string>();

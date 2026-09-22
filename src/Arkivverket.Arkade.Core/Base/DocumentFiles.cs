@@ -54,9 +54,8 @@ namespace Arkivverket.Arkade.Core.Base
 
                 string trimmedPackageRootDirectory = packageRootDirectory.Trim('/', '\\');
 
-                entry.Name = _tarRootDirectoryName == null
-                    ? $"{trimmedPackageRootDirectory}/{entry.Name}"
-                    : entry.Name.Replace(_tarRootDirectoryName, trimmedPackageRootDirectory);
+                entry.Name = $"{trimmedPackageRootDirectory}/{ArkadeConstants.DirectoryNameContent}/" +
+                             entry.GetRelativePathForNoark5DocumentEntry(_tarRootDirectoryName);
 
                 tarOutputStream.PutNextEntry(entry);
 
@@ -163,7 +162,7 @@ namespace Arkivverket.Arkade.Core.Base
                     CheckSum = checkSum
                 };
 
-                string relativeEntryName = entry.GetRelativePathForNoark5DocumentEntry();
+                string relativeEntryName = entry.GetRelativePathForNoark5DocumentEntry(_tarRootDirectoryName);
 
                 _documentFiles.Add(relativeEntryName, documentFile);
             }
@@ -187,7 +186,7 @@ namespace Arkivverket.Arkade.Core.Base
 
                 string checkSum = tarInputStream.GenerateChecksumForEntry(checksumGenerator);
 
-                string documentFileRelativePath = entry.GetRelativePathForNoark5DocumentEntry();
+                string documentFileRelativePath = entry.GetRelativePathForNoark5DocumentEntry(_tarRootDirectoryName);
 
                 _documentFiles[documentFileRelativePath].CheckSum = checkSum;
             }
